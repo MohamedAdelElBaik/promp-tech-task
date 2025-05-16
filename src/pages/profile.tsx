@@ -14,7 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import axiosInstance from "@/utils/axios";
 
@@ -22,36 +30,24 @@ export default function ProfilePage() {
   const { auth } = useAuth();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
   // Redirect to login if not authenticated
   if (!auth.isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    setPasswordSuccess(false);
-    setPasswordError(null);
-
-    if (!newPassword || !confirmPassword) {
-      setPasswordError("Please fill in all password fields");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setPasswordError("Passwords do not match");
-      return;
-    }
-
+  const handleChangePassword = async () => {
     try {
       await axiosInstance.post(
-        "/api/change-password", // Adjust endpoint as per your API
+        "/public/api/changePassword",
         {
+          phone: auth.user?.phone,
           new_password: newPassword,
-          confirm_password: confirmPassword,
         },
         {
           headers: {
@@ -61,6 +57,7 @@ export default function ProfilePage() {
       );
 
       setPasswordSuccess(true);
+      setPasswordError(null);
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
@@ -78,7 +75,29 @@ export default function ProfilePage() {
       } else {
         setPasswordError("Network error. Please check your connection.");
       }
+    } finally {
+      setIsConfirmDialogOpen(false);
     }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    setPasswordSuccess(false);
+    setPasswordError(null);
+
+    if (!newPassword || !confirmPassword) {
+      setPasswordError("Please fill in both password fields");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+
+    // Open confirmation dialog
+    setIsConfirmDialogOpen(true);
   };
 
   return (
@@ -190,27 +209,59 @@ export default function ProfilePage() {
                     </Alert>
                   )}
 
-                  <form onSubmit={handleChangePassword} className="space-y-4">
+                  <form onSubmit={handleFormSubmit} className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="new-password">New Password</Label>
-                      <Input
-                        id="new-password"
-                        type="password"
-                        placeholder="Enter new password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                      />
+                      <div className="relative">
+                        <Input
+                          id="new-password"
+                          type={showNewPassword ? "text" : "password"}
+                          placeholder="Enter new password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                        >
+                          {showNewPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="confirm-password">Confirm Password</Label>
-                      <Input
-                        id="confirm-password"
-                        type="password"
-                        placeholder="Confirm new password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                      />
+                      <div className="relative">
+                        <Input
+                          id="confirm-password"
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Confirm new password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
 
                     <Button type="submit" className="w-full">
@@ -223,6 +274,28 @@ export default function ProfilePage() {
           </Tabs>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Password Change</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to change your password? This action cannot
+              be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsConfirmDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleChangePassword}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
