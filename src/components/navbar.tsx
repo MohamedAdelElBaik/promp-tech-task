@@ -6,9 +6,7 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
 
 const useAuth = () => {
-  const location = useLocation();
-  const isAuthenticated =
-    location.pathname === "/profile" || location.pathname === "/edit-profile";
+  const isAuthenticated = !!localStorage.getItem("authToken");
   return { isAuthenticated };
 };
 
@@ -169,7 +167,7 @@ export function Navbar() {
             <Link
               to="/about"
               className={cn(
-                "text-base font-medium transition-colors hover:text-primary/80 py-2",
+                " tissu font-medium transition-colors hover:text-primary/80 py-2",
                 isActive("/about") ? "text-primary" : "text-muted-foreground",
               )}
               onClick={closeMenu}
