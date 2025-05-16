@@ -9,10 +9,8 @@ const axiosInstance = axios.create({
   },
 });
 
-// Request Interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Add auth token if available
     const token = localStorage.getItem("authToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -30,11 +28,8 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Centralized error handling
     if (error.response) {
-      // Handle specific status codes globally if needed
       if (error.response.status === 401) {
-        // Example: Redirect to login or refresh token
         localStorage.removeItem("authToken");
         window.location.href = "/login";
       }

@@ -4,16 +4,12 @@ import { Menu, X, Sun, Moon, LogIn, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
-
-const useAuth = () => {
-  const isAuthenticated = !!localStorage.getItem("authToken");
-  return { isAuthenticated };
-};
+import { useAuth } from "@/context/AuthContext";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { isAuthenticated } = useAuth();
+  const { auth } = useAuth();
   const location = useLocation();
 
   const toggleMenu = () => {
@@ -66,7 +62,7 @@ export function Navbar() {
             >
               About Us
             </Link>
-            {isAuthenticated ? (
+            {auth.isAuthenticated ? (
               <Link
                 to="/profile"
                 className={cn(
@@ -167,14 +163,14 @@ export function Navbar() {
             <Link
               to="/about"
               className={cn(
-                " tissu font-medium transition-colors hover:text-primary/80 py-2",
+                "text-base font-medium transition-colors hover:text-primary/80 py-2",
                 isActive("/about") ? "text-primary" : "text-muted-foreground",
               )}
               onClick={closeMenu}
             >
               About Us
             </Link>
-            {isAuthenticated ? (
+            {auth.isAuthenticated ? (
               <Link
                 to="/profile"
                 className={cn(
