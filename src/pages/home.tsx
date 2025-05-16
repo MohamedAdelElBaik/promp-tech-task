@@ -2,8 +2,11 @@ import { Layout } from "@/components/layout";
 import { Slider } from "@/components/slider";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 export default function HomePage() {
+  const { auth } = useAuth();
+
   return (
     <Layout>
       <div className="w-full">
@@ -91,11 +94,19 @@ export default function HomePage() {
             </div>
 
             <div className="mt-12 text-center">
-              <Link to="/login">
-                <Button size="lg" variant="default">
-                  Get Started
-                </Button>
-              </Link>
+              {auth.isAuthenticated ? (
+                <Link to="/profile">
+                  <Button size="lg" variant="default">
+                    Go to Profile
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/login">
+                  <Button size="lg" variant="default">
+                    Get Started
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </section>

@@ -1,16 +1,26 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Sun, Moon, LogIn, User } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, Sun, Moon, LogIn, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
 import { useAuth } from "@/context/AuthContext";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { auth } = useAuth();
+  const { auth, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -26,6 +36,12 @@ export function Navbar() {
 
   const isActive = (path: string) => {
     return location.pathname === path;
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsLogoutDialogOpen(false);
+    navigate("/");
   };
 
   return (
@@ -63,20 +79,32 @@ export function Navbar() {
               About Us
             </Link>
             {auth.isAuthenticated ? (
-              <Link
-                to="/profile"
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary/80",
-                  isActive("/profile")
-                    ? "text-primary"
-                    : "text-muted-foreground",
-                )}
-              >
-                <div className="flex items-center gap-1">
-                  <User className="h-4 w-4" />
-                  <span>Profile</span>
-                </div>
-              </Link>
+              <>
+                <Link
+                  to="/profile"
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary/80",
+                    isActive("/profile")
+                      ? "text-primary"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  <div className="flex items-center gap-1">
+                    <User className="h-4 w-4" />
+                    <span>Profile</span>
+                  </div>
+                </Link>
+                <Button
+                  variant="ghost"
+                  className="text-sm font-medium text-destructive hover:text-destructive/80"
+                  onClick={() => setIsLogoutDialogOpen(true)}
+                >
+                  <div className="flex items-center gap-1">
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </div>
+                </Button>
+              </>
             ) : (
               <Link
                 to="/login"
@@ -171,21 +199,38 @@ export function Navbar() {
               About Us
             </Link>
             {auth.isAuthenticated ? (
-              <Link
-                to="/profile"
-                className={cn(
-                  "text-base font-medium transition-colors hover:text-primary/80 py-2",
-                  isActive("/profile")
-                    ? "text-primary"
-                    : "text-muted-foreground",
-                )}
-                onClick={closeMenu}
-              >
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span>Profile</span>
-                </div>
-              </Link>
+              <>
+                <Link
+                  to="/profile"
+                  className={cn(
+                    "text-base font-medium transition-colors hover:text-primary/80 py-2",
+                    isActive("/profile")
+                      ? "text-primary"
+                      : "text-muted-foreground",
+                  )}
+                  onClick={closeMenu}
+                >
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span>Profile</span>
+                  </div>
+                </Link>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "text-base font-medium transition-colors text-destructive hover:text-destructive/80 py-2 justify-start",
+                  )}
+                  onClick={() => {
+                    setIsLogoutDialogOpen(true);
+                    closeMenu();
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </div>
+                </Button>
+              </>
             ) : (
               <Link
                 to="/login"
@@ -204,6 +249,30 @@ export function Navbar() {
           </div>
         </div>
       )}
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Logout</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to log out? You will need to log in again to
+              access your profile.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsLogoutDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleLogout}>
+              Logout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </nav>
   );
 }
